@@ -70,7 +70,7 @@ public class RaceController extends AbstractBehavior<RaceController.Command> {
                     return Behaviors.withTimers(timer -> {
                         // sending a message to this RaceController itself so it triggers the timer
                         timer.startTimerAtFixedRate(TIMER_KEY, new GetPositionsCommand(), Duration.ofSeconds(1));
-                        return this;
+                        return Behaviors.same();
                     });
                 })
                 .onMessage(GetPositionsCommand.class, message -> {
@@ -78,11 +78,11 @@ public class RaceController extends AbstractBehavior<RaceController.Command> {
                         racer.tell(new Racer.PositionCommand(getContext().getSelf()));
                         displayRace();
                     }
-                    return this;
+                    return Behaviors.same(); // behaviour doesn't change, similar to returning 'this'
                 })
                 .onMessage(RacerUpdateCommand.class, message -> {
                     currentPositions.put(message.getRacer(), message.getPosition());
-                    return this;
+                    return Behaviors.same();
                 })
                 .build();
     }

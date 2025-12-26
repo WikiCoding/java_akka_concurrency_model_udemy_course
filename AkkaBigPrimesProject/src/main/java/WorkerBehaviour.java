@@ -9,8 +9,42 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Random;
 
-public class WorkerBehaviour extends AbstractBehavior<WorkerBehaviour.Command> { 
-    private BigInteger prime;
+public class WorkerBehaviour extends AbstractBehavior<WorkerBehaviour.Command> {
+
+    private WorkerBehaviour(ActorContext<Command> context) {
+        super(context);
+    }
+
+    public static Behavior<Command> create() {
+        return Behaviors.setup(WorkerBehaviour::new);
+    }
+
+    @Override
+    public Receive<Command> createReceive() {
+        return handleMessagesWhenWeDontYetHaveAPrimeNumber();
+    }
+
+    public Receive<Command> handleMessagesWhenWeDontYetHaveAPrimeNumber() {
+        return newReceiveBuilder()
+                .onAnyMessage(command -> {
+                    BigInteger bigInteger = new BigInteger(2000, new Random());
+                    BigInteger prime = bigInteger.nextProbablePrime();
+                    command.getSender().tell(new ManagerBehaviour.ResultCommand(prime));
+
+                    return handleMessagesWhenWeAlreadyHaveAPrimeNumber(prime);
+                })
+                .build();
+    }
+
+    public Receive<Command> handleMessagesWhenWeAlreadyHaveAPrimeNumber(BigInteger prime) {
+        return newReceiveBuilder()
+                .onAnyMessage(command -> {
+                    command.getSender().tell(new ManagerBehaviour.ResultCommand(prime));
+
+                    return Behaviors.same();
+                })
+                .build();
+    }
 
     // this is done so we can share the nextBigPrime with the ManagerBehaviour
     // general good practice to make this a subclass of worker with name Command and make it Serializable
@@ -31,30 +65,5 @@ public class WorkerBehaviour extends AbstractBehavior<WorkerBehaviour.Command> {
         public ActorRef<ManagerBehaviour.Command> getSender() {
             return sender;
         }
-    }
-
-    private WorkerBehaviour(ActorContext<Command> context) {
-        super(context);
-    }
-
-    public static Behavior<Command> create() {
-        return Behaviors.setup(WorkerBehaviour::new);
-    }
-
-    @Override
-    public Receive<Command> createReceive() {
-        return newReceiveBuilder()
-                .onAnyMessage(command -> {
-                    if (command.getMessage().equals("start")) {
-                        if (prime == null) {
-                            BigInteger bigInteger = new BigInteger(2000, new Random());
-                            prime = bigInteger.nextProbablePrime();
-                        }
-
-                        command.getSender().tell(new ManagerBehaviour.ResultCommand(prime));
-                    }
-                    return this;
-                })
-                .build();
     }
 }

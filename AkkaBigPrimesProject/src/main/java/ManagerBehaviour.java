@@ -61,7 +61,7 @@ public class ManagerBehaviour extends AbstractBehavior<ManagerBehaviour.Command>
 //                            worker.tell(new WorkerBehaviour.Command("start", getContext().getSelf()));
                         }
                     }
-                    return this;
+                    return Behaviors.same();
                 })
                 .onMessage(ResultCommand.class, command -> {
                     primes.add(command.getPrime());
@@ -70,7 +70,7 @@ public class ManagerBehaviour extends AbstractBehavior<ManagerBehaviour.Command>
                     if (primes.size() == 20) {
                         primes.forEach(System.out::println);
                     }
-                    return this;
+                    return Behaviors.same();
                 })
                 .build();
     }
