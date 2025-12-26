@@ -147,7 +147,7 @@ public class Racer extends AbstractBehavior<Racer.Command> {
                 .onAnyMessage(message -> Behaviors.same())
                 .onSignal(PostStop.class, signal -> {
                     // clean shutdown. We get this when the RaceController calls .stop(racer)
-                    System.out.println("I'm about to terminate!");
+                    getContext().getLog().info("I'm about to terminate!");
                     return Behaviors.same();
                 })
                 .build();
