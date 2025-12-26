@@ -18,3 +18,8 @@ Let's imagine human interaction. A manager can go to each of the employees and a
 4. Messages are processed one at a time.
 
 Let's imagine that the manager has the collection to store a list of BigPrimes. The Manager might send a message to each of the Employee actors asking for each one big prime, which can be a string. The Employee actors are never going to change that string. So the Employee actors will send the manager a message containing the big integer. And the manager can store those big integers in the ArrayList but it can't change the BigIntegers. I a Supervisor from the Manager asks for the current state of the ArrayList, then the Employees messages will sit in the Message Queue while the Manager processes the Supervisor request and then it will resume processing the messages in the queue one at a time.
+
+## Message Guarantees
+1. Sending messages from one Actor to another in Akka is not guaranteed.
+2. Messages are delivered at most once (we need to worry about this when we're working in a clustered environment)
+3. Message order is guaranteed between 2 actors

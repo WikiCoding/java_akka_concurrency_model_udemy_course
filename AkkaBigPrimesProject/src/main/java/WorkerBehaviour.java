@@ -9,7 +9,8 @@ import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Random;
 
-public class WorkerBehaviour extends AbstractBehavior<WorkerBehaviour.Command> {
+public class WorkerBehaviour extends AbstractBehavior<WorkerBehaviour.Command> { 
+    private BigInteger prime;
 
     // this is done so we can share the nextBigPrime with the ManagerBehaviour
     // general good practice to make this a subclass of worker with name Command and make it Serializable
@@ -45,8 +46,12 @@ public class WorkerBehaviour extends AbstractBehavior<WorkerBehaviour.Command> {
         return newReceiveBuilder()
                 .onAnyMessage(command -> {
                     if (command.getMessage().equals("start")) {
-                        BigInteger bigInteger = new BigInteger(2000, new Random());
-                        command.getSender().tell(new ManagerBehaviour.ResultCommand(bigInteger.nextProbablePrime()));
+                        if (prime == null) {
+                            BigInteger bigInteger = new BigInteger(2000, new Random());
+                            prime = bigInteger.nextProbablePrime();
+                        }
+
+                        command.getSender().tell(new ManagerBehaviour.ResultCommand(prime));
                     }
                     return this;
                 })

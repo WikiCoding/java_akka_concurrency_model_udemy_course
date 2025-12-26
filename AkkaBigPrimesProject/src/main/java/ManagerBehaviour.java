@@ -57,6 +57,8 @@ public class ManagerBehaviour extends AbstractBehavior<ManagerBehaviour.Command>
                             ActorRef<WorkerBehaviour.Command> worker = getContext().spawn(WorkerBehaviour.create(), "Worker" + i);
                             // getSelf(/) so a reference to itself
                             worker.tell(new WorkerBehaviour.Command("start", getContext().getSelf()));
+                            // duplicate line to verify the behaviour of duplicates
+//                            worker.tell(new WorkerBehaviour.Command("start", getContext().getSelf()));
                         }
                     }
                     return this;
