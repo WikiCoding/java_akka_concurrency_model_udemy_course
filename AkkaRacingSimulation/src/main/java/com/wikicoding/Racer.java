@@ -12,10 +12,6 @@ import java.io.Serializable;
 import java.util.Random;
 
 public class Racer extends AbstractBehavior<Racer.Command> {
-    private final double defaultAverageSpeed = 48.2;
-    private int averageSpeedAdjustmentFactor;
-    private Random random;
-    private double currentSpeed = 0;
 
     public interface Command extends Serializable {}
 
@@ -53,6 +49,38 @@ public class Racer extends AbstractBehavior<Racer.Command> {
         return Behaviors.setup(Racer::new);
     }
 
+    private final double defaultAverageSpeed = 48.2;
+    private int averageSpeedAdjustmentFactor;
+    private Random random;
+    private double currentSpeed = 0;
+
+    private double getMaxSpeed() {
+        return defaultAverageSpeed * (1+((double)averageSpeedAdjustmentFactor / 100));
+    }
+
+    private double getDistanceMovedPerSecond() {
+        return currentSpeed * 1000 / 3600;
+    }
+
+    private void determineNextSpeed(int currentPosition, int raceLength) {
+        if (currentPosition < (raceLength / 4)) {
+            currentSpeed = currentSpeed  + (((getMaxSpeed() - currentSpeed) / 10) * random.nextDouble());
+        }
+        else {
+            currentSpeed = currentSpeed * (0.5 + random.nextDouble());
+        }
+
+        if (currentSpeed > getMaxSpeed())
+            currentSpeed = getMaxSpeed();
+
+        if (currentSpeed < 5)
+            currentSpeed = 5;
+
+        if (currentPosition > (raceLength / 2) && currentSpeed < getMaxSpeed() / 2) {
+            currentSpeed = getMaxSpeed() / 2;
+        }
+    }
+
     @Override
     public Receive<Command> createReceive() {
         return notYetStarted();
@@ -81,7 +109,7 @@ public class Racer extends AbstractBehavior<Racer.Command> {
                     determineNextSpeed(currentPosition, raceLength);
                     int newPosition = currentPosition;
                     newPosition += getDistanceMovedPerSecond();
-                    if (newPosition > raceLength ) newPosition  = raceLength;
+                    if (newPosition > raceLength ) newPosition = raceLength;
 
                     message.getController().tell(
                             new RaceController.RacerUpdateCommand(getContext().getSelf(), newPosition)
@@ -123,32 +151,5 @@ public class Racer extends AbstractBehavior<Racer.Command> {
                     return Behaviors.same();
                 })
                 .build();
-    }
-
-    private double getMaxSpeed() {
-        return defaultAverageSpeed * (1+((double)averageSpeedAdjustmentFactor / 100));
-    }
-
-    private double getDistanceMovedPerSecond() {
-        return currentSpeed * 1000 / 3600;
-    }
-
-    private void determineNextSpeed(int currentPosition, int raceLength) {
-        if (currentPosition < (raceLength / 4)) {
-            currentSpeed = currentSpeed  + (((getMaxSpeed() - currentSpeed) / 10) * random.nextDouble());
-        }
-        else {
-            currentSpeed = currentSpeed * (0.5 + random.nextDouble());
-        }
-
-        if (currentSpeed > getMaxSpeed())
-            currentSpeed = getMaxSpeed();
-
-        if (currentSpeed < 5)
-            currentSpeed = 5;
-
-        if (currentPosition > (raceLength / 2) && currentSpeed < getMaxSpeed() / 2) {
-            currentSpeed = getMaxSpeed() / 2;
-        }
     }
 }
