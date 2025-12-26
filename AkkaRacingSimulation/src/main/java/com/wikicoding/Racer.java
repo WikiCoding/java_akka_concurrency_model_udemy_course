@@ -2,6 +2,7 @@ package com.wikicoding;
 
 import akka.actor.typed.ActorRef;
 import akka.actor.typed.Behavior;
+import akka.actor.typed.PostStop;
 import akka.actor.typed.javadsl.AbstractBehavior;
 import akka.actor.typed.javadsl.ActorContext;
 import akka.actor.typed.javadsl.Behaviors;
@@ -102,6 +103,23 @@ public class Racer extends AbstractBehavior<Racer.Command> {
                             new RaceController.RacerUpdateCommand(getContext().getSelf(), raceLength)
                     );
 
+                    message.getController().tell(new RaceController.RacerFinishedCommand(getContext().getSelf()));
+
+                    // .ignore() instead of .stop() so it doesn't shut itself down and therefore no dead letter errors
+                    // it will just sit there in memory but idle. It's the Parent that shuts down it's workers
+                    // it will ignore all messages and signals from the parent
+                    // return Behaviors.ignore();
+                    return waitingToStop();
+                })
+                .build();
+    }
+
+    public Receive<Command> waitingToStop() {
+        return newReceiveBuilder()
+                .onAnyMessage(message -> Behaviors.same())
+                .onSignal(PostStop.class, signal -> {
+                    // clean shutdown. We get this when the RaceController calls .stop(racer)
+                    System.out.println("I'm about to terminate!");
                     return Behaviors.same();
                 })
                 .build();
